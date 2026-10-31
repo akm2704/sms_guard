@@ -27,3 +27,6 @@ staticfiles/
 htmlcov/
 .vscode/
 .idea/
+
+!data/raw/SMSSpamCollection
+!data/raw/custom_ru_kk.csv
