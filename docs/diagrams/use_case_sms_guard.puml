@@ -1,0 +1,54 @@
+@startuml
+' SMS Guard — Use Case diagram. Исходник для PlantUML.
+left to right direction
+skinparam shadowing false
+skinparam usecase {
+  BackgroundColor #F7FAFF
+  BorderColor #456C9B
+  ArrowColor #456C9B
+}
+skinparam actorStyle awesome
+actor "Пользователь" as User
+actor "Администратор" as Admin
+Admin --|> User
+
+rectangle "SMS Guard — веб-приложение" {
+  usecase "UC-01\nРегистрация" as UC01
+  usecase "UC-02\nВход" as UC02
+  usecase "UC-03\nВыход" as UC03
+  usecase "UC-04\nПроверить SMS" as UC04
+  usecase "UC-05\nПроверить URL" as UC05
+  usecase "UC-06\nРезультат и\nрекомендации" as UC06
+  usecase "UC-07\nИстория" as UC07
+  usecase "UC-08\nФильтровать историю" as UC08
+  usecase "UC-09\nДетали проверки" as UC09
+  usecase "UC-10\nУдалить проверку" as UC10
+  usecase "UC-11\nПрофиль и согласие" as UC11
+  usecase "UC-12\nDashboard" as UC12
+  usecase "UC-13\nОбщая статистика" as UC13
+  usecase "UC-14\nВерсии моделей" as UC14
+}
+User --> UC01
+User --> UC02
+User --> UC03
+User --> UC04
+User --> UC05
+User --> UC07
+User --> UC08
+User --> UC09
+User --> UC10
+User --> UC11
+User --> UC12
+UC04 ..> UC06 : <<include>>
+UC05 ..> UC06 : <<include>>
+UC08 ..> UC07 : <<extend>>
+UC09 ..> UC07 : <<extend>>
+UC10 ..> UC07 : <<extend>>
+Admin --> UC13
+Admin --> UC14
+note bottom of UC04
+  Найденные в SMS URL
+  проверяются автоматически
+  (не более 3 ссылок).
+end note
+@enduml
