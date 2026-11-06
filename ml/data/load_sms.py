@@ -51,12 +51,11 @@ def load_sms():
     # Добавляем уникальный идентификатор.
     df.insert(0, "id", range(1, len(df) + 1))
 
-    return df
+    return df[["id", "text", "label"]]
 
 
 def main():
     df = load_sms()
-    return df[["id", "text", "label"]]
 
     print("\n=== ОБЩАЯ ИНФОРМАЦИЯ ===")
     print("Количество SMS:", len(df))
