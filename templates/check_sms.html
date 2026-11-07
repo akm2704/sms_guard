@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load l10n %}
+{% block title %}Проверка SMS — SMS Guard{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-9 col-xl-8">
+    <section class="hero p-4 p-md-5 mb-4 shadow-sm">
+      <span class="badge text-bg-secondary mb-3">Прототип · задания 1–7</span>
+      <h1 class="h2 mb-3">Проверка SMS</h1>
+      <p class="text-secondary">Английские сообщения проверяются обученной ML-моделью. Для русского и казахского языков пока доступен предварительный анализ по правилам. Проверка безопасности ссылок появится позже.</p>
+      <form method="post" action="{% url 'sms-check' %}">
+        {% csrf_token %}
+        <label for="sms-text" class="form-label fw-semibold">Текст сообщения</label>
+        <textarea id="sms-text" name="text" rows="5" maxlength="1000" required class="form-control{% if error %} is-invalid{% endif %}" placeholder="Введите SMS на английском, русском или казахском">{{ text }}</textarea>
+        <div class="d-flex justify-content-between align-items-center mt-2">
+          <small class="text-secondary">Ссылки не открываются, и текст не сохраняется в историю.</small>
+          <button class="btn btn-primary" type="submit">Проверить сообщение</button>
+        </div>
+        {% if error %}<p class="text-danger mt-3" role="alert">{{ error }}</p>{% endif %}
+      </form>
+    </section>
+
+    {% if checked %}
+    <section class="hero p-4 p-md-5 shadow-sm" aria-live="polite">
+      <h2 class="h4 mb-3">Результат анализа</h2>
+
+      <!-- Единый итоговый индикатор для всех языков; не выдаём правила за вероятность ML. -->
+      <div class="alert {% if indicator_alert %}alert-warning{% else %}alert-success{% endif %} fw-semibold" role="status">
+        {% if indicator_alert %}⚠{% else %}ℹ{% endif %} {{ indicator_title }}
+      </div>
+
+      <p class="mb-1"><strong>Определённый язык:</strong> {{ language_label }}</p>
+      <p class="mb-3"><strong>Выявлено групп правил:</strong> {{ se_group_count }} из 6</p>
+
+      {% if analysis_mode == "ml_en" %}
+        <p class="small text-secondary mb-2">Метод: Logistic Regression (англоязычная ML-модель).</p>
+        {% if is_spam %}
+          <p class="small text-secondary">Модель обнаружила признаки спама.</p>
+        {% else %}
+          <p class="small text-secondary">Модель не обнаружила выраженных признаков спама.</p>
+        {% endif %}
+        <p class="mb-2"><strong>Вероятность класса «спам» (ML):</strong> {{ probability_percent|unlocalize }}%</p>
+        <div class="progress mb-3" role="progressbar" aria-label="Вероятность спама" aria-valuenow="{{ probability_percent|unlocalize }}" aria-valuemin="0" aria-valuemax="100">
+          <div class="progress-bar {% if is_spam %}bg-warning{% else %}bg-success{% endif %}" style="width: {{ probability_percent|unlocalize }}%"></div>
+        </div>
+        <p class="small text-secondary">Процент рассчитан обученной моделью; не означает гарантированную безопасность или мошенничество.</p>
+        {% if se_group_reasons %}
+          <p class="mb-1"><strong>Дополнительные срабатывания правил:</strong></p>
+          <ul>{% for reason in se_group_reasons %}<li>{{ reason }}</li>{% endfor %}</ul>
+        {% endif %}
+      {% else %}
+        <p class="small text-secondary mb-2">Метод: предварительная проверка по правилам (русский/казахский).</p>
+        {% if rules_alert %}
+          <p class="small text-secondary">Найдены признаки, требующие внимания.</p>
+        {% else %}
+          <p class="small text-secondary">Явных тревожных признаков по текущему словарю не найдено.</p>
+        {% endif %}
+        {% if reasons %}
+          <p class="mb-1"><strong>Обнаруженные признаки:</strong></p>
+          <ul>{% for reason in reasons %}<li>{{ reason }}</li>{% endfor %}</ul>
+        {% endif %}
+        <div class="alert alert-info">
+
+    Для кириллицы вероятность спама не вычисляется:
+    доступен только предварительный анализ по словарю правил.
+
+    <p>Метод проверки: словарь правил.</p>
+
+    При этом надёжность такой оценки не подтверждена
+    независимым тестированием.
+
+    Число «{{ se_group_count }} из 6» —
+    количество обнаруженных групп правил,
+    а не вероятность мошенничества и не Risk Score.
+
+    Отсутствие подозрительных признаков
+    не гарантирует безопасность сообщения.
+
+</div>
+      {% endif %}
+      <p class="mb-2"><strong>Проверенный текст:</strong></p>
+      <pre class="bg-light p-3 rounded border text-wrap" style="white-space: pre-wrap; overflow-wrap: anywhere;">{{ text }}</pre>
+      <p class="small text-secondary mb-0">Результат носит справочный характер. Не сообщайте коды, пароли и данные карты неизвестным отправителям.</p>
+    </section>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
